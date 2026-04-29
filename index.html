@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Uchiha Quest</title>
+    <style>
+        body { background-color: #000; color: #ff0000; text-align: center; font-family: 'Courier New', monospace; }
+        canvas { border: 2px solid #ff0000; background-color: #111; display: block; margin: 20px auto; }
+    </style>
+</head>
+<body>
+    <h1>Uchiha Quest</h1>
+    <p>تحرك باستخدام الأسهم</p>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let x = 185, y = 185;
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ff0000"; // لون المربع الأحمر
+            ctx.fillRect(x, y, 30, 30);
+            requestAnimationFrame(draw);
+        }
+        window.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowUp') y -= 10;
+            if(e.key === 'ArrowDown') y += 10;
+            if(e.key === 'ArrowLeft') x -= 10;
+            if(e.key === 'ArrowRight') x += 10;
+        });
+        draw();
+    </script>
+</body>
+</html>
