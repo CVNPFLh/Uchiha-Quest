@@ -2,33 +2,108 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Uchiha Quest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uchiha Quest - The Challenge</title>
     <style>
-        body { background-color: #000; color: #ff0000; text-align: center; font-family: 'Courier New', monospace; }
-        canvas { border: 2px solid #ff0000; background-color: #111; display: block; margin: 20px auto; }
+        body { background: #000; color: #f00; text-align: center; font-family: 'Courier New', monospace; overflow: hidden; margin: 0; }
+        canvas { border: 3px solid #600; background: #050505; display: block; margin: 10px auto; box-shadow: 0 0 20px #f00; max-width: 95%; height: auto; }
+        .score { font-size: 24px; margin: 10px; text-shadow: 2px 2px #500; }
+        .controls { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; justify-content: center; padding: 10px; }
+        button { width: 70px; height: 70px; background: #111; color: #f00; border: 2px solid #f00; font-size: 25px; border-radius: 50%; outline: none; }
+        button:active { background: #f00; color: #000; }
+        .game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 20px; border: 2px solid #f00; display: none; }
     </style>
 </head>
 <body>
-    <h1>Uchiha Quest</h1>
-    <p>تحرك باستخدام الأسهم</p>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div class="score">Score: <span id="scoreVal">0</span></div>
+    <canvas id="gameCanvas" width="320" height="400"></canvas>
+
+    <div id="gameOver" class="game-over">
+        <h2>GAME OVER</h2>
+        <p>You fell into the Genjutsu!</p>
+        <button onclick="location.reload()" style="width: 120px; border-radius: 5px;">Restart</button>
+    </div>
+
+    <div class="controls">
+        <div></div><button onclick="move('up')">↑</button><div></div>
+        <button onclick="move('left')">←</button><button onclick="move('down')">↓</button><button onclick="move('right')">→</button>
+    </div>
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let x = 185, y = 185;
+        const scoreElement = id="scoreVal";
+
+        let player = { x: 145, y: 350, size: 25 };
+        let enemies = [];
+        let score = 0;
+        let gameActive = true;
+
+        // صنع عدو (كوناي)
+        function spawnEnemy() {
+            let speed = 2 + Math.random() * 3;
+            enemies.push({ x: Math.random() * (canvas.width - 20), y: -20, size: 15, speed: speed });
+        }
+
+        function move(dir) {
+            if (!gameActive) return;
+            if (dir === 'up' && player.y > 0) player.y -= 20;
+            if (dir === 'down' && player.y < canvas.height - player.size) player.y += 20;
+            if (dir === 'left' && player.x > 0) player.x -= 20;
+            if (dir === 'right' && player.x < canvas.width - player.size) player.x += 20;
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // تحريك الأعداء
+            for (let i = 0; i < enemies.length; i++) {
+                enemies[i].y += enemies[i].speed;
+
+                // فحص الاصطدام
+                if (player.x < enemies[i].x + enemies[i].size &&
+                    player.x + player.size > enemies[i].x &&
+                    player.y < enemies[i].y + enemies[i].size &&
+                    player.y + player.size > enemies[i].y) {
+                    gameActive = false;
+                    document.getElementById('gameOver').style.display = 'block';
+                }
+            }
+
+            // حذف الأعداء خارج الشاشة وزيادة النقاط
+            enemies = enemies.filter(e => {
+                if (e.y > canvas.height) {
+                    score++;
+                    document.getElementById('scoreVal').innerText = score;
+                    return false;
+                }
+                return true;
+            });
+
+            if (Math.random() < 0.05) spawnEnemy();
+            draw();
+            requestAnimationFrame(update);
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#ff0000"; // لون المربع الأحمر
-            ctx.fillRect(x, y, 30, 30);
-            requestAnimationFrame(draw);
+
+            // رسم اللاعب (إيتاتشي - مربع أحمر)
+            ctx.fillStyle = "#f00";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#f00";
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+
+            // رسم الأعداء (كوناي - مربعات رمادية)
+            ctx.fillStyle = "#888";
+            ctx.shadowBlur = 0;
+            for (let e of enemies) {
+                ctx.fillRect(e.x, e.y, e.size, e.size);
+            }
         }
-        window.addEventListener('keydown', (e) => {
-            if(e.key === 'ArrowUp') y -= 10;
-            if(e.key === 'ArrowDown') y += 10;
-            if(e.key === 'ArrowLeft') x -= 10;
-            if(e.key === 'ArrowRight') x += 10;
-        });
-        draw();
+
+        update();
     </script>
 </body>
 </html>
